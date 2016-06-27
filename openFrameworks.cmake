@@ -325,6 +325,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
     find_package(OpenSSL REQUIRED)
     find_package(Threads REQUIRED)
     find_package(Freetype REQUIRED)
+    find_package(GLEW REQUIRED)
     find_package(Boost COMPONENTS filesystem system REQUIRED)
 
     #// Link static libs if available //////////////////////////////////////////
@@ -436,6 +437,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${OPENSSL_INCLUDE_DIR}
         ${FREETYPE_INCLUDE_DIRS}
         ${FONTCONFIG_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_DIRS}
     )
 
     if(OF_PLATFORM MATCHES armv7)
@@ -467,7 +469,24 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${FONTCONFIG_LIBRARIES}
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
+        ${GLEW_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
+        ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
+        ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
+        ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
+        ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNetSSL.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
+        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
+        ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
+        /usr/lib/libfreeimage.so
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/
     )
 
     if(OF_PLATFORM MATCHES armv7)
@@ -573,7 +592,20 @@ elseif(CMAKE_SYSTEM MATCHES Darwin)
     endif()
 
     list(APPEND OPENFRAMEWORKS_LIBRARIES
-        ${OPENFRAMEWORKS_LIBS}
+      ${OPENFRAMEWORKS_LIBS}
+      ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
+      ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
+      ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
+      ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
+      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
+      ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
     )
 
     #// Global dependencies ////////////////////////////////////////////////////
@@ -721,6 +753,9 @@ elseif(CMAKE_SYSTEM MATCHES Windows)
     find_library(SETUPAPI_LIB setupapi)
     find_library(STRMIIDS_LIB strmiids)
 
+    list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
+      ${OF_ROOT_DIR}
+      )
     list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
         ${ZLIB_INCLUDE_DIRS}
         ${CAIRO_INCLUDE_DIRS}
