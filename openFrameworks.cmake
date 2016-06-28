@@ -7,9 +7,9 @@ endif()
 #// Options ////////////////////////////////////////////////////////////////////
 
 set(OF_COTIRE ON CACHE BOOL "Enable Cotire header precompiler")
-set(OF_STATIC OFF CACHE BOOL "Link openFrameworks libraries statically")
-
-set(OF_PLATFORM x86 CACHE STRING "Platform architecture. No need to be modified by default.")
+set(OF_STATIC ON CACHE BOOL "Link openFrameworks libraries statically")
+set(OF_PLATFORM linux64 CACHE STRING "Platform architecture. No need to be modified by default.")
+set(OF_OS linux64 CACHE STRING "OS include bits info. linux64 by default.")
 
 if(CMAKE_SYSTEM MATCHES Linux)
 
@@ -268,22 +268,25 @@ if(CMAKE_SYSTEM MATCHES Linux)
     #     set(OF_LIB_DIR "${OF_ROOT_DIR}/lib-linux/debug-${OF_PLATFORM}-${ARCH_BIT}")
     # endif()
 
-    set(OF_LIB_DIR "${OF_ROOT_DIR}/libs/openFrameworksCompiled/lib/linux64")
+    set(OF_LIB_DIR "${OF_ROOT_DIR}/libs")
 
     if(OF_STATIC)
       if(CMAKE_BUILD_TYPE MATCHES Release)
-        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*openFrameworks.a")
+        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}/*.a")
+        message(STATUS ${OPENFRAMEWORKS_LIBS})
+        # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "${OF_LIB_DIR}.*linux64.*[.]a")
+        # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "[//]opt[//]openFrameworks[//].*a")
       elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*openFrameworksDebug.a")
+        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}/*.a")
       endif()
       if(NOT OPENFRAMEWORKS_LIBS)
       message(FATAL_ERROR "No static openFrameworks libraries found in ${OF_LIB_DIR} folder.")
       endif()
     else()
       if(CMAKE_BUILD_TYPE MATCHES Release)
-        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*openFrameworks.so")
+        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}*.so")
       elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*openFrameworksDebug.so")
+        file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}*.so")
       endif()
       # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*.so")
       if(NOT OPENFRAMEWORKS_LIBS)
@@ -335,6 +338,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
     set(STATIC_LIB_PATHS
       "/usr/lib/x86_64-linux-gnu"
       "/usr/local/lib"
+      ${}
     )
 
     find_library(
@@ -372,11 +376,33 @@ if(CMAKE_SYSTEM MATCHES Linux)
       libfontconfig.a
       PATHS ${STATIC_LIB_PATHS}
     )
+    find_library(
+      FREEIMAGE_LIB NAMES
+      libfreeimage.a
+      PATHS ${STATIC_LIB_PATHS}
+    )
+  # pre-compiled libraries
+  # find_library(
+  #   GLFW_LIBRARIES
+  #   NAMES libglfw3.a
+  #   HINTS ${OF_ROOT_DIR}/libs/glfw/lib/*
+  #   PATH_SUFFIXES ${OF_OS}/)
+  # find_library(
+  #   KISS_LIBRARIES
+  #   NAMES libkiss.a
+  #   HINTS ${OF_ROOT_DIR}/libs/kiss/lib/*
+  #   PATH_SUFFIXES ${OF_OS}/)
+  # find_library(
+  #   POCO_LIBRARIES
+  #   NAMES libPoco*.a
+  #   HINTS ${OF_ROOT_DIR}/libs/poco/lib/*
+  #   PATH_SUFFIXES ${OF_OS}/)
+
 
     if(ZLIB_LIB MATCHES ZLIB_LIB-NOTFOUND)
       message(STATUS "Using dynamic Zlib")
     else()
-      message(STATUS "Using static Zlib")
+      message(STATUS "Using static Zlib: ${ZLIB_LIB}")
       set(ZLIB_LIBRARIES
         ${ZLIB_LIB}
       )
@@ -384,9 +410,19 @@ if(CMAKE_SYSTEM MATCHES Linux)
 
     if(PIXMAN_LIB MATCHES PIXMAN_LIB-NOTFOUND OR
         CAIRO_LIB MATCHES  CAIRO_LIB-NOTFOUND)
-      message(STATUS "Using dynamic Cairo")
+      find_library(
+        PIXMAN_LIB NAMES
+        libpixman-1.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      find_library(
+        CAIRO_LIB NAMES
+        libcairo.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      message(STATUS "Using dynamic Cairo: ${PIXMAN_LIB} ${CAIRO_LIB}")
     else()
-      message(STATUS "Using static Cairo")
+      message(STATUS "Using static Cairo: ${CAIRO_LIB} ${PIXMAN_LIB}")
       set(CAIRO_LIBRARIES
         ${PIXMAN_LIB}
         ${CAIRO_LIB}
@@ -395,9 +431,19 @@ if(CMAKE_SYSTEM MATCHES Linux)
 
     if(CRYPTO_LIB MATCHES CRYPTO_LIB-NOTFOUND OR
           SSL_LIB MATCHES    SSL_LIB-NOTFOUND)
-      message(STATUS "Using dynamic OpenSSL")
+      find_library(
+        CRYPTO_LIB NAMES
+        libcrypto.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      find_library(
+        SSL_LIB NAMES
+        libssl.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      message(STATUS "Using dynamic OpenSSL: ${CRYPTO_LIB} ${SSL_LIB}")
     else()
-      message(STATUS "Using static OpenSSL")
+      message(STATUS "Using static OpenSSL: ${CRYPTO_LIB} ${SSL_LIB} ${DL_LIB}")
       find_library(DL_LIB dl)
       set(OPENSSL_LIBRARIES
         ${CRYPTO_LIB}
@@ -407,20 +453,44 @@ if(CMAKE_SYSTEM MATCHES Linux)
     endif()
 
     if(FREETYPE_LIB MATCHES FREETYPE_LIB-NOTFOUND)
-      message(STATUS "Using dynamic FreeType")
+      find_library(
+        FREETYPE_LIB NAMES
+        libfreetype.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      message(STATUS "Using dynamic FreeType: ${FREETYPE_LIB}")
     else()
-      message(STATUS "Using static FreeType")
+      message(STATUS "Using static FreeType: ${FREETYPE_LIB}")
       set(FREETYPE_LIBRARIES
         ${FREETYPE_LIB}
       )
     endif()
 
     if(FONTCONFIG_LIB MATCHES FONTCONFIG_LIB-NOTFOUND)
-      message(STATUS "Using dynamic Fontconfig")
+      find_library(
+        FONTCONFIG_LIB NAMES
+        libfontconfig.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      message(STATUS "Using dynamic Fontconfig: ${FONTCONFIG_LIB}")
     else()
-      message(STATUS "Using static Fontconfig")
+      message(STATUS "Using static Fontconfig: ${FONTCONFIG_LIB}")
       set(FONTCONFIG_LIBRARIES
         ${FONTCONFIG_LIB}
+      )
+    endif()
+
+    if(FREEIMAGE_LIB MATCHES FREEIMAGE_LIB-NOTFOUND)
+      find_library(
+        FREEIMAGE_LIB NAMES
+        libfreeimage.so
+        PATHS ${STATIC_LIB_PATHS}
+        )
+      message(STATUS "Using dynamic Freeimage: ${FREEIMAGE_LIB}")
+    else()
+      message(STATUS "Using static Freeimage: ${FREEIMAGE_LIB}")
+      set(FREEIMAGE_LIBRARIES
+        ${FREEIMAGE_LIB}
       )
     endif()
 
@@ -467,25 +537,28 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${OPENSSL_LIBRARIES}
         ${FREETYPE_LIBRARIES}
         ${FONTCONFIG_LIBRARIES}
+        ${FREEIMAGE_LIBRARIES}
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
         ${GLEW_LIBRARIES}
+        # ${GLFW_LIBRARIES}
+        # ${KISS_LIBRARIES}
+        # ${POCO_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
-        ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
-        ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
-        ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNetSSL.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
-        ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
-        ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
-        /usr/lib/libfreeimage.so
+        # ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
+        # ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
+        # ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNetSSL.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
+        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
+        # ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
+        # /usr/lib/libfreeimage.so
         # ${OF_ROOT_DIR}/libs/poco/lib/linux64/
     )
 
