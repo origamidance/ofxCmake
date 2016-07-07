@@ -134,7 +134,7 @@ find_path(OF_ADDONS_DIR
   )
 
 message(STATUS "OF ROOT DIR:        " ${OF_ROOT_DIR} )
-message(STATUS "OF ADDONS DIR:        " ${OF_ADDONS_DIR} )
+# message(STATUS "OF ADDONS DIR:        " ${OF_ADDONS_DIR} )
 find_package(PkgConfig REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -273,7 +273,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
     if(OF_STATIC)
       if(CMAKE_BUILD_TYPE MATCHES Release)
         file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}/*.a")
-        message(STATUS ${OPENFRAMEWORKS_LIBS})
+        # message(STATUS ${OPENFRAMEWORKS_LIBS})
         # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "${OF_LIB_DIR}.*linux64.*[.]a")
         # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "[//]opt[//]openFrameworks[//].*a")
       elseif(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -401,6 +401,9 @@ if(CMAKE_SYSTEM MATCHES Linux)
 
     if(ZLIB_LIB MATCHES ZLIB_LIB-NOTFOUND)
       message(STATUS "Using dynamic Zlib")
+      set(ZLIB_LIBRARIES
+        ${ZLIB_LIB}
+      )
     else()
       message(STATUS "Using static Zlib: ${ZLIB_LIB}")
       set(ZLIB_LIBRARIES
@@ -421,6 +424,10 @@ if(CMAKE_SYSTEM MATCHES Linux)
         PATHS ${STATIC_LIB_PATHS}
         )
       message(STATUS "Using dynamic Cairo: ${PIXMAN_LIB} ${CAIRO_LIB}")
+      set(CAIRO_LIBRARIES
+        ${PIXMAN_LIB}
+        ${CAIRO_LIB}
+      )
     else()
       message(STATUS "Using static Cairo: ${CAIRO_LIB} ${PIXMAN_LIB}")
       set(CAIRO_LIBRARIES
@@ -442,6 +449,11 @@ if(CMAKE_SYSTEM MATCHES Linux)
         PATHS ${STATIC_LIB_PATHS}
         )
       message(STATUS "Using dynamic OpenSSL: ${CRYPTO_LIB} ${SSL_LIB}")
+      set(OPENSSL_LIBRARIES
+        ${CRYPTO_LIB}
+        ${SSL_LIB}
+        ${DL_LIB}
+      )
     else()
       message(STATUS "Using static OpenSSL: ${CRYPTO_LIB} ${SSL_LIB} ${DL_LIB}")
       find_library(DL_LIB dl)
@@ -459,6 +471,9 @@ if(CMAKE_SYSTEM MATCHES Linux)
         PATHS ${STATIC_LIB_PATHS}
         )
       message(STATUS "Using dynamic FreeType: ${FREETYPE_LIB}")
+      set(FREETYPE_LIBRARIES
+        ${FREETYPE_LIB}
+      )
     else()
       message(STATUS "Using static FreeType: ${FREETYPE_LIB}")
       set(FREETYPE_LIBRARIES
@@ -473,6 +488,9 @@ if(CMAKE_SYSTEM MATCHES Linux)
         PATHS ${STATIC_LIB_PATHS}
         )
       message(STATUS "Using dynamic Fontconfig: ${FONTCONFIG_LIB}")
+      set(FONTCONFIG_LIBRARIES
+        ${FONTCONFIG_LIB}
+      )
     else()
       message(STATUS "Using static Fontconfig: ${FONTCONFIG_LIB}")
       set(FONTCONFIG_LIBRARIES
@@ -487,6 +505,9 @@ if(CMAKE_SYSTEM MATCHES Linux)
         PATHS ${STATIC_LIB_PATHS}
         )
       message(STATUS "Using dynamic Freeimage: ${FREEIMAGE_LIB}")
+      set(FREEIMAGE_LIBRARIES
+        ${FREEIMAGE_LIB}
+      )
     else()
       message(STATUS "Using static Freeimage: ${FREEIMAGE_LIB}")
       set(FREEIMAGE_LIBRARIES
@@ -634,6 +655,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${GSTREAMER_VIDEO_LIBRARIES}
       )
     endif()
+    message(STATUS ${OPENFRAMEWORKS_LIBRARIES})
 
 elseif(CMAKE_SYSTEM MATCHES Darwin)
 
