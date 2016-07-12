@@ -126,12 +126,6 @@ find_path(OF_ROOT_DIR
   HINTS /opt/
   PATH_SUFFIXES openFrameworks/
   )
-find_path(OF_ADDONS_DIR
-  NAMES ofxGui/
-  HINTS ${OF_ROOT_DIR}/*
-  ${OF_ROOT_DIR}/addons
-  ${CMAKE_SOURCE_DIR}/*
-  )
 
 message(STATUS "OF ROOT DIR:        " ${OF_ROOT_DIR} )
 # message(STATUS "OF ADDONS DIR:        " ${OF_ADDONS_DIR} )
@@ -169,15 +163,7 @@ set(OPENFRAMEWORKS_INCLUDE_DIRS
 
     "${OF_ROOT_DIR}/libs/FreeImage"
     "${OF_ROOT_DIR}/libs/FreeImage/include"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR/Half"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR/Iex"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR/IlmImf"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR/IlmThread"
-    # "${OF_ROOT_DIR}/libs/FreeImage/OpenEXR/Imath"
 
-    # "${OF_ROOT_DIR}/libs/glew"
-    # "${OF_ROOT_DIR}/libs/glew/include"
     "/usr/include/GL"
 
     "${OF_ROOT_DIR}/libs/glfw"
@@ -204,19 +190,17 @@ set(OPENFRAMEWORKS_INCLUDE_DIRS
     "${OF_ROOT_DIR}/libs/poco/include/Poco/MongoDB"
     "${OF_ROOT_DIR}/libs/poco/include/Poco/Dynamic"
 
-    # "${OF_ROOT_DIR}/libs/rtaudio"
-    # "${OF_ROOT_DIR}/libs/rtaudio/include"
     "usr/include/rtaudio"
 
     "${OF_ROOT_DIR}/libs/utf8cpp"
     "${OF_ROOT_DIR}/libs/utf8cpp/include"
 )
 
-# if(CMAKE_SYSTEM MATCHES Windows)
-# list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
-#     "${OF_ROOT_DIR}/libs/videoinput"
-# )
-# endif()
+if(CMAKE_SYSTEM MATCHES Windows)
+list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
+    "${OF_ROOT_DIR}/libs/videoinput"
+)
+endif()
 
 #// Platform-specific commands /////////////////////////////////////////////////
 
@@ -262,22 +246,15 @@ if(CMAKE_SYSTEM MATCHES Linux)
         -Wl,-rpath,'$$ORIGIN'
     )
 
-    # if(CMAKE_BUILD_TYPE MATCHES Release)
-    #     set(OF_LIB_DIR "${OF_ROOT_DIR}/lib-linux/release-${OF_PLATFORM}-${ARCH_BIT}")
-    # elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-    #     set(OF_LIB_DIR "${OF_ROOT_DIR}/lib-linux/debug-${OF_PLATFORM}-${ARCH_BIT}")
-    # endif()
-
     set(OF_LIB_DIR "${OF_ROOT_DIR}/libs")
 
     if(OF_STATIC)
       if(CMAKE_BUILD_TYPE MATCHES Release)
         file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}/*.a")
-        # message(STATUS ${OPENFRAMEWORKS_LIBS})
-        # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "${OF_LIB_DIR}.*linux64.*[.]a")
-        # file(GLOB_RECURSE OPENFRAMEWORKS_LIBS REGEX "[//]opt[//]openFrameworks[//].*a")
+        list(REMOVE_ITEM OPENFRAMEWORKS_LIBS "/opt/openFrameworks/libs/openFrameworksCompiled/lib/linux64/libopenFrameworksDebug.a")
       elseif(CMAKE_BUILD_TYPE MATCHES Debug)
         file(GLOB_RECURSE OPENFRAMEWORKS_LIBS "${OF_LIB_DIR}/*/lib/${OF_PLATFORM}/*.a")
+        list(REMOVE_ITEM OPENFRAMEWORKS_LIBS "/opt/openFrameworks/libs/openFrameworksCompiled/lib/linux64/libopenFrameworks.a")
       endif()
       if(NOT OPENFRAMEWORKS_LIBS)
       message(FATAL_ERROR "No static openFrameworks libraries found in ${OF_LIB_DIR} folder.")
@@ -325,6 +302,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
 
     find_package(X11 REQUIRED)
     find_package(ZLIB REQUIRED)
+    find_package(Pixman REQUIRED)
     find_package(OpenSSL REQUIRED)
     find_package(Threads REQUIRED)
     find_package(Freetype REQUIRED)
@@ -342,174 +320,12 @@ if(CMAKE_SYSTEM MATCHES Linux)
     )
 
     find_library(
-      ZLIB_LIB NAMES
-      libz.a
-      PATHS ${STATIC_LIB_PATHS}
+      FREEIMAGE_LIB freeimage
     )
-    find_library(
-      PIXMAN_LIB NAMES
-      libpixman-1.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      CAIRO_LIB NAMES
-      libcairo.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      CRYPTO_LIB NAMES
-      libcrypto.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      SSL_LIB NAMES
-      libssl.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      FREETYPE_LIB NAMES
-      libfreetype.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      FONTCONFIG_LIB NAMES
-      libfontconfig.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-    find_library(
-      FREEIMAGE_LIB NAMES
-      libfreeimage.a
-      PATHS ${STATIC_LIB_PATHS}
-    )
-  # pre-compiled libraries
-  # find_library(
-  #   GLFW_LIBRARIES
-  #   NAMES libglfw3.a
-  #   HINTS ${OF_ROOT_DIR}/libs/glfw/lib/*
-  #   PATH_SUFFIXES ${OF_OS}/)
-  # find_library(
-  #   KISS_LIBRARIES
-  #   NAMES libkiss.a
-  #   HINTS ${OF_ROOT_DIR}/libs/kiss/lib/*
-  #   PATH_SUFFIXES ${OF_OS}/)
-  # find_library(
-  #   POCO_LIBRARIES
-  #   NAMES libPoco*.a
-  #   HINTS ${OF_ROOT_DIR}/libs/poco/lib/*
-  #   PATH_SUFFIXES ${OF_OS}/)
-
-
-    if(ZLIB_LIB MATCHES ZLIB_LIB-NOTFOUND)
-      message(STATUS "Using dynamic Zlib")
-      set(ZLIB_LIBRARIES
-        ${ZLIB_LIB}
-      )
-    else()
-      message(STATUS "Using static Zlib: ${ZLIB_LIB}")
-      set(ZLIB_LIBRARIES
-        ${ZLIB_LIB}
-      )
-    endif()
-
-    if(PIXMAN_LIB MATCHES PIXMAN_LIB-NOTFOUND OR
-        CAIRO_LIB MATCHES  CAIRO_LIB-NOTFOUND)
-      find_library(
-        PIXMAN_LIB NAMES
-        libpixman-1.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      find_library(
-        CAIRO_LIB NAMES
-        libcairo.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      message(STATUS "Using dynamic Cairo: ${PIXMAN_LIB} ${CAIRO_LIB}")
-      set(CAIRO_LIBRARIES
-        ${PIXMAN_LIB}
-        ${CAIRO_LIB}
-      )
-    else()
-      message(STATUS "Using static Cairo: ${CAIRO_LIB} ${PIXMAN_LIB}")
-      set(CAIRO_LIBRARIES
-        ${PIXMAN_LIB}
-        ${CAIRO_LIB}
-      )
-    endif()
-
-    if(CRYPTO_LIB MATCHES CRYPTO_LIB-NOTFOUND OR
-          SSL_LIB MATCHES    SSL_LIB-NOTFOUND)
-      find_library(
-        CRYPTO_LIB NAMES
-        libcrypto.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      find_library(
-        SSL_LIB NAMES
-        libssl.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      message(STATUS "Using dynamic OpenSSL: ${CRYPTO_LIB} ${SSL_LIB}")
-      set(OPENSSL_LIBRARIES
-        ${CRYPTO_LIB}
-        ${SSL_LIB}
-        ${DL_LIB}
-      )
-    else()
-      message(STATUS "Using static OpenSSL: ${CRYPTO_LIB} ${SSL_LIB} ${DL_LIB}")
-      find_library(DL_LIB dl)
-      set(OPENSSL_LIBRARIES
-        ${CRYPTO_LIB}
-        ${SSL_LIB}
-        ${DL_LIB}
-      )
-    endif()
-
-    if(FREETYPE_LIB MATCHES FREETYPE_LIB-NOTFOUND)
-      find_library(
-        FREETYPE_LIB NAMES
-        libfreetype.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      message(STATUS "Using dynamic FreeType: ${FREETYPE_LIB}")
-      set(FREETYPE_LIBRARIES
-        ${FREETYPE_LIB}
-      )
-    else()
-      message(STATUS "Using static FreeType: ${FREETYPE_LIB}")
-      set(FREETYPE_LIBRARIES
-        ${FREETYPE_LIB}
-      )
-    endif()
-
-    if(FONTCONFIG_LIB MATCHES FONTCONFIG_LIB-NOTFOUND)
-      find_library(
-        FONTCONFIG_LIB NAMES
-        libfontconfig.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      message(STATUS "Using dynamic Fontconfig: ${FONTCONFIG_LIB}")
-      set(FONTCONFIG_LIBRARIES
-        ${FONTCONFIG_LIB}
-      )
-    else()
-      message(STATUS "Using static Fontconfig: ${FONTCONFIG_LIB}")
-      set(FONTCONFIG_LIBRARIES
-        ${FONTCONFIG_LIB}
-      )
-    endif()
-
     if(FREEIMAGE_LIB MATCHES FREEIMAGE_LIB-NOTFOUND)
-      find_library(
-        FREEIMAGE_LIB NAMES
-        libfreeimage.so
-        PATHS ${STATIC_LIB_PATHS}
-        )
-      message(STATUS "Using dynamic Freeimage: ${FREEIMAGE_LIB}")
-      set(FREEIMAGE_LIBRARIES
-        ${FREEIMAGE_LIB}
-      )
+      message(FATAL_ERROR "FreeImage library not found: ${FREEIMAGE_LIB}")
     else()
-      message(STATUS "Using static Freeimage: ${FREEIMAGE_LIB}")
+      message(STATUS "FreeImage library found: ${FREEIMAGE_LIB}")
       set(FREEIMAGE_LIBRARIES
         ${FREEIMAGE_LIB}
       )
@@ -522,6 +338,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
     list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
         ${X11_INCLUDE_DIR}
         ${ZLIB_INCLUDE_DIRS}
+        ${PIXMAN_INCLUDE_DIRS}
         ${CAIRO_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${OPENGL_INCLUDE_DIR}
@@ -530,20 +347,6 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${FONTCONFIG_INCLUDE_DIRS}
         ${GLEW_INCLUDE_DIRS}
     )
-
-    if(OF_PLATFORM MATCHES armv7)
-      list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
-        ${EGL_INCLUDE_DIR}
-        ${OPENGLES2_INCLUDE_DIR}
-      )
-      # Assuming Raspberry Pi 2 and Raspbian
-      list(APPEND OPENFRAMEWORKS_INCLUDE_DIRS
-        /opt/vc/include
-        /opt/vc/include/IL
-        /opt/vc/include/interface/vcos/pthreads
-        /opt/vc/include/interface/vmcs_host/linux
-      )
-    endif()
 
     list(APPEND OPENFRAMEWORKS_LIBRARIES
         ${X11_Xi_LIB}
@@ -554,6 +357,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${X11_Xinerama_LIB}
         ${ZLIB_LIBRARIES}
         ${CAIRO_LIBRARIES}
+        ${PIXMAN_LIBRARIES}
         ${OPENGL_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${FREETYPE_LIBRARIES}
@@ -562,48 +366,8 @@ if(CMAKE_SYSTEM MATCHES Linux)
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
         ${GLEW_LIBRARIES}
-        # ${GLFW_LIBRARIES}
-        # ${KISS_LIBRARIES}
-        # ${POCO_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        # ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
-        # ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
-        # ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNetSSL.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
-        # ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
-        # /usr/lib/libfreeimage.so
-        # ${OF_ROOT_DIR}/libs/poco/lib/linux64/
     )
-
-    if(OF_PLATFORM MATCHES armv7)
-      list(APPEND OPENFRAMEWORKS_LIBRARIES
-        ${EGL_LIBRARIES}
-        ${OPENGLES2_LIBRARIES}
-      )
-      # Assuming Raspberry Pi 2 and Raspbian
-      list(APPEND OPENFRAMEWORKS_LIBRARIES
-        -L/opt/vc/lib
-        GLESv2
-        GLESv1_CM
-        EGL
-        openmaxil
-        bcm_host
-        vcos
-        vchiq_arm
-        pcre
-        rt
-        X11
-        dl
-      )
-    endif()
 
     if(NOT OF_AUDIO)
       list(APPEND OPENFRAMEWORKS_DEFINITIONS -DTARGET_NO_SOUND)
@@ -688,19 +452,6 @@ elseif(CMAKE_SYSTEM MATCHES Darwin)
 
     list(APPEND OPENFRAMEWORKS_LIBRARIES
       ${OPENFRAMEWORKS_LIBS}
-      ${OF_ROOT_DIR}/libs/fmodex/lib/linux64/libfmodex.so
-      ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
-      ${OF_ROOT_DIR}/libs/glfw/lib/linux64/libglfw3.a
-      ${OF_ROOT_DIR}/libs/kiss/lib/linux64/libkiss.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoCrypto.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoData.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoFoundation.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoJSON.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoNet.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoUtil.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoXML.a
-      ${OF_ROOT_DIR}/libs/poco/lib/linux64/libPocoZip.a
-      ${OF_ROOT_DIR}/libs/tess2/lib/linux64/libtess2.a
     )
 
     #// Global dependencies ////////////////////////////////////////////////////
@@ -960,12 +711,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   else()
     set(O_CXX_FLAG -O0)
   endif()
-endif()
-
-if(OF_PLATFORM MATCHES armv7)
-    set(ARCH_FLAG "-march=armv7-a -mfpu=vfp -mfloat-abi=hard")
-elseif(ARCH_BIT MATCHES 32)
-    set(ARCH_FLAG "-m32")
 endif()
 
 if(CMAKE_SYSTEM MATCHES Linux)
