@@ -214,30 +214,6 @@ if(CMAKE_SYSTEM MATCHES Linux)
         -DOF_VIDEO_CAPTURE_GSTREAMER
     )
 
-    if(OF_PLATFORM MATCHES armv7)
-      # Assuming Raspberry Pi 2 and Raspbian
-      list(APPEND OPENFRAMEWORKS_DEFINITIONS
-        -DTARGET_RASPBERRY_PI
-        -DUSE_DISPMANX_TRANSFORM_T
-        -DSTANDALONE
-        -DPIC
-        -D_REENTRANT
-        -D_LARGEFILE64_SOURCE
-        -D_FILE_OFFSET_BITS=64
-        -D_FORTIFY_SOURCE
-        -D__STDC_CONSTANT_MACROS
-        -D__STDC_LIMIT_MACROS
-        -DTARGET_POSIX
-        -DHAVE_LIBOPENMAX=2
-        -DOMX
-        -DOMX_SKIP64BIT
-        -DUSE_EXTERNAL_OMX
-        -DHAVE_LIBBCM_HOST
-        -DUSE_EXTERNAL_LIBBCM_HOST
-        -DUSE_VCHIQ_ARM
-      )
-    endif()
-
     #// Local dependencies /////////////////////////////////////////////////////
 
     # The folder of executable will be
@@ -294,12 +270,7 @@ if(CMAKE_SYSTEM MATCHES Linux)
     pkg_check_modules(CAIRO REQUIRED cairo)
     pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
-    if(OF_PLATFORM MATCHES armv7)
-    find_package(OpenGLES REQUIRED)
-    else()
     find_package(OpenGL REQUIRED)
-    endif()
-
     find_package(X11 REQUIRED)
     find_package(ZLIB REQUIRED)
     find_package(Pixman REQUIRED)
